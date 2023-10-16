@@ -306,7 +306,7 @@ def RetrieveRodsData(InputRods):
                           data or a *string* leading to a file from which to retrieve the data.")
     
     # Check if the DataFrame contains the necessary columns
-    if RodsSet!=None :
+    if isinstance(InputRods,pd.DataFrame) or isinstance(InputRods,str) :
         if "X" not in RodsSet.columns:
             raise ValueError("Missing column 'X' in InputRods !")
         elif ((RodsSet["X"].dtypes.kind not in np.typecodes["AllFloat"]) and (RodsSet["X"].dtypes.kind=='i')):
@@ -455,10 +455,10 @@ class ParametersForClustering:
         self.Nspheres = len(SpheresSet["X"])
         
         # Retrieve number of rod-like objects
-        if RodsSet == None:
-            self.Nrods = 0
-        else:
+        if isinstance(RodsSet,pd.DataFrame):
             self.Nrods = len(RodsSet["X"])
+        else:
+            self.Nrods = 0
         
         # Copy value of parameter 'PeriodicBoundaryCondition' into the equivalent attribute
         if isinstance(PeriodicBoundaryCondition,bool):
@@ -651,7 +651,7 @@ def __RodMask(param,x,y,z,wx,wy,wz,l,r):
     # For each point of the reduced grid, compute its orthogonal projection onto the central segment of the spherocylinder
     p = (param.xgrid[Nx_min:Nx_max,Ny_min:Ny_max,Nz_min:Nz_max] - x)*wx +\
         (param.ygrid[Nx_min:Nx_max,Ny_min:Ny_max,Nz_min:Nz_max] - y)*wy +\
-        (param.zgrid[Nx_min:Nx_max,Ny_min:Ny_max,Nz_min:Nz_max] - z)*wy
+        (param.zgrid[Nx_min:Nx_max,Ny_min:Ny_max,Nz_min:Nz_max] - z)*wz
     
     # For each point of the reduced grid, compute the distance between its projection and itself
     d = np.sqrt( (param.xgrid[Nx_min:Nx_max,Ny_min:Ny_max,Nz_min:Nz_max] - x)**2 +\
@@ -736,8 +736,8 @@ def Create3Dbinaryimage(param,SpheresSet,RodsSet):
     bw_tot = scim.binary_fill_holes(bw_tot)
     
     # Substract all the elements of RodsSet from the image
-    if RodsSet != None:
-        __SubtractAllRods(param,RodsSet,bw_tot)
+    if isinstance(RodsSet,pd.DataFrame):
+        __SubstractAllRods(param,RodsSet,bw_tot)
         bw_tot = scim.binary_fill_holes(bw_tot)
     
     return bw_tot
